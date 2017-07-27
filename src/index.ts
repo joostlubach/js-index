@@ -1,0 +1,1 @@
+// @index: export ${variable} from ${relpath}
