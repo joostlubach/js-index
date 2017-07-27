@@ -9,6 +9,10 @@
     "name": "Joost Lubach",
     "publishername": "joostlubach"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joostlubach/js-index.git"
+  },
   "engines": {
     "vscode": "^1.14.0"
   },
