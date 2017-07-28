@@ -1,7 +1,16 @@
 # Change Log
-All notable changes to the "js-index" extension will be documented in this file.
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## [0.0.2]
 
-## [Unreleased]
-- Initial release
+First release
+
+## [0.0.3]
+
+Small fix: index files with only
+
+```
+// @index
+// /index
+```
+
+are now handled correctly.

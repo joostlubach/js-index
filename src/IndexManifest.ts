@@ -35,8 +35,15 @@ export default class IndexManifest {
 	}
 
 	writeIndex() {
-		const {start, end, patterns, template} = this.readMarkers()
-		const index = this.buildIndex(patterns, template)
+		let {start, end, patterns, template} = this.readMarkers()
+		let index = this.buildIndex(patterns, template)
+
+		if (end < start) {
+			// Because the pattern finders greedily eat newlines and blanks, it may be that the end index
+			// is before the start index. In that case, insert a newline into the index.
+			start = end
+			index = `\n${index}`
+		}
 
 		const startPosition = this.document.positionAt(start)
 		const endPosition   = this.document.positionAt(end)
