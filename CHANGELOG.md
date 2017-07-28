@@ -14,3 +14,7 @@ Small fix: index files with only
 ```
 
 are now handled correctly.
+
+## [0.0.4]
+
+- Added setting `js-index.defaultTemplate`.

@@ -3,7 +3,7 @@
   "displayName": "JS Index",
   "description": "Builds a JS/TS index out of files in the directory.",
   "icon": "icon.png",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "joostlubach",
   "author": {
     "name": "Joost Lubach",
@@ -36,7 +36,18 @@
             "key": "ctrl+k i",
             "mac": "cmd+k i"
         }
-    ]
+    ],
+    "configuration": {
+      "title": "js-index configuration",
+      "type":  "object",
+      "properties": {
+        "js-index.defaultTemplate": {
+          "type": "string",
+          "default": "export {default as ${variable}} from ${relpath};",
+          "description": "The default template to use when exporting files"          
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "tsc -p ./",

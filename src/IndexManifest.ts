@@ -13,8 +13,6 @@ const defaultPatterns = (document: vscode.TextDocument) => ({
 	file:      /\.ts$/.test(document.fileName) ? /\.ts$/ : /\.js$/
 })
 
-const defaultTemplate = 'export {default as ${variable}} from ${relpath}'
-
 export default class IndexManifest {
 
 	constructor(private document: vscode.TextDocument) {}
@@ -55,6 +53,7 @@ export default class IndexManifest {
 	}
 
 	readMarkers(): MarkerInfo {
+		const {defaultTemplate} = vscode.workspace.getConfiguration('js-index')
 		const text = this.document.getText()
 
 		const startMatch = text.match(/@index\s*(?:\((.*?)\))?\s*(?::\s*(.*?))?[\s\n]*(?:\n|$)/)
