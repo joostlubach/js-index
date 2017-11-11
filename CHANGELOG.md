@@ -18,3 +18,7 @@ are now handled correctly.
 ## [0.0.4]
 
 - Added setting `js-index.defaultTemplate`.
+
+## [0.0.5]
+
+- Added .tsx and .jsx files by default.

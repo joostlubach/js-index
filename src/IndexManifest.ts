@@ -10,7 +10,7 @@ type MarkerInfo = {start: number, end: number, patterns: Patterns, template: str
 
 const defaultPatterns = (document: vscode.TextDocument) => ({
 	directory: /^.*$/,
-	file:      /\.ts$/.test(document.fileName) ? /\.ts$/ : /\.js$/
+	file:      /\.ts$/.test(document.fileName) ? /\.tsx?$/ : /\.jsx?$/
 })
 
 export default class IndexManifest {
@@ -123,7 +123,7 @@ export default class IndexManifest {
 	}
 
 	shouldInclude(name: string, path: string, patterns: Patterns): boolean {
-		if (name === 'index.js' || name === 'index.ts') { return false }
+		if (name === 'index.js' || name === 'index.ts' || name === 'index.tsx') { return false }
 
 		const stat = FS.statSync(path)
 		const pattern = stat.isDirectory() ? patterns.directory : patterns.file
