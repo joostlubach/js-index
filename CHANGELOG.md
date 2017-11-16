@@ -22,3 +22,12 @@ are now handled correctly.
 ## [0.0.5]
 
 - Added .tsx and .jsx files by default.
+
+## [0.1.0]
+
+*Potentially breaking changes!*
+
+- More powerful patterns (exclusion, multiple patterns)
+- Indexes are aligned with their start marker
+- Alignment markers for generated indexes
+- Addition of `${variable:upper}` placeholder

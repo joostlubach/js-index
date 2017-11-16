@@ -1,40 +1,65 @@
 import * as vscode from 'vscode'
 import * as Path from 'path'
 import * as FS from 'fs'
+import Aligner from './Aligner'
 
-type Patterns = {
-	directory: RegExp,
-	file:      RegExp
+interface IndexMarker {
+	indent:   string,
+	start:    number
+	end:      number
+	patterns: Pattern[]
+	template: string
 }
-type MarkerInfo = {start: number, end: number, patterns: Patterns, template: string}
 
-const defaultPatterns = (document: vscode.TextDocument) => ({
-	directory: /^.*$/,
-	file:      /\.ts$/.test(document.fileName) ? /\.tsx?$/ : /\.jsx?$/
-})
+interface Pattern {
+	type:    'file' | 'directory'
+	policy:  'include' | 'exclude'
+	regExp?: RegExp
+}
 
 export default class IndexManifest {
 
 	constructor(private document: vscode.TextDocument) {}
 
-	buildIndex(patterns: Patterns, template: string) {
+	buildIndex(patterns: Pattern[], template: string, indent: string) {
+		const aligner = new Aligner()
+		
 		const dir = Path.dirname(this.document.uri.fsPath)
 		const names = this.getFilenames(patterns)
 
-		return names.map(name => {
+		const lines = names.map(name => {
 			const nameWithoutExtension = name.replace(/\..*?$/, '')
 
-			return template
+			return `${indent}${template}`
 				.replace(/\$\{relpath\}/g, `'./${nameWithoutExtension}'`)
 				.replace(/\$\{relpathwithext\}/g, `'./${name}'`)
 				.replace(/\$\{variable\}/g, camelCase(nameWithoutExtension))
+				.replace(/\$\{variable:upper\}/g, camelCase(nameWithoutExtension, true))
 				.replace(/\$\{name\}/g, `'${camelCase(nameWithoutExtension)}'`) // TODO: Escape apostrophes, but who uses apostrophes in filenames anyway?
-		}).join('\n')
+		})
+		
+		return aligner.align(lines).join('\n')
 	}
 
 	writeIndex() {
-		let {start, end, patterns, template} = this.readMarkers()
-		let index = this.buildIndex(patterns, template)
+		try {
+			const edit = new vscode.WorkspaceEdit()
+			for (const marker of this.readMarkers()) {
+				this.replaceIndex(edit, marker)
+			}
+			vscode.workspace.applyEdit(edit)
+		} catch (error) {
+			if (error instanceof UserError) {
+				vscode.window.showErrorMessage(error.message)
+			} else {
+				console.error(error)
+			}
+		}
+	}
+
+	replaceIndex(edit: vscode.WorkspaceEdit, marker: IndexMarker) {
+		let {indent, start, end, patterns, template} = marker
+		let index = this.buildIndex(patterns, template, indent)
 
 		if (end < start) {
 			// Because the pattern finders greedily eat newlines and blanks, it may be that the end index
@@ -46,67 +71,108 @@ export default class IndexManifest {
 		const startPosition = this.document.positionAt(start)
 		const endPosition   = this.document.positionAt(end)
 		const range         = new vscode.Range(startPosition, endPosition)
-		
-		vscode.window.activeTextEditor.edit(builder => {
-			builder.replace(range, index)
-		})
+
+		edit.replace(this.document.uri, range, index)
 	}
 
-	readMarkers(): MarkerInfo {
+	readMarkers(): IndexMarker[] {
 		const {defaultTemplate} = vscode.workspace.getConfiguration('js-index')
-		const text = this.document.getText()
+		const markers: IndexMarker[] = []
 
-		const startMatch = text.match(/@index\s*(?:\((.*?)\))?\s*(?::\s*(.*?))?[\s\n]*(?:\n|$)/)
-		const endMatch   = text.match(/[\s\n]*\n[\/\*\s]*\/index/)
-
-		if (startMatch == null) {
-			// Return the entire file.
-			return {
-				start:    0,
-				end:      text.length,
-				patterns: defaultPatterns(this.document),
-				template: defaultTemplate
-			}
+		let marker
+		let startFrom = 0
+		while ([marker, startFrom] = this.readNextMarker(startFrom), marker != null) {
+			markers.push(marker)
 		}
 
+		if (markers.length === 0) {
+			// Replace the entire file.
+			markers.push({
+				indent:   '',
+				start:    0,
+				end:      this.document.getText().length,
+				patterns: [],
+				template: defaultTemplate
+			})
+		}
+
+		// Give back the markers in reverse order, so that a later index doesn't
+		// overwrite an earlier one.
+		markers.sort((a, b) => b.start - a.start)
+		return markers
+	}
+
+	readNextMarker(startFrom: number): [IndexMarker | null, number] {
+		const text = this.document.getText()
+		const {defaultTemplate} = vscode.workspace.getConfiguration('js-index')
+		
+		const part = text.slice(startFrom)
+		const startMatch = part.match(/@index\s*(?:\((.*?)\))?\s*(?::\s*(.*?))?[\s\n]*(?:\n|$)/)
+		const endMatch   = part.match(/[\s\n]*\n[\/\*\s]*\/index/)
+		if (startMatch == null) { return [null, text.length] }
+
 		// Use start and end markers (@index ... /index) and optionally parse options from the start marker.
-		const start = startMatch.index + startMatch[0].length
-		const end   = endMatch == null ? text.length : endMatch.index
+		const start = startFrom + startMatch.index + startMatch[0].length
+		const end   = endMatch == null ? text.length : startFrom + endMatch.index
+
+		// Figure out the indentation of the start marker.
+		const startPos = this.document.positionAt(start)
+		const startLine = text.split('\n')[startPos.line - 1]
+		const indent = startLine.match(/^\s*/)[0]
 
 		const patterns = this.parsePatterns(startMatch[1])
 		const template = startMatch[2] || defaultTemplate
 
-		return {start, end, patterns, template}
+		return [
+			{indent, start, end, patterns, template},
+			endMatch == null ? end : end + endMatch[0].length
+		]
 	}
 
-	parsePatterns(text: string): Patterns {
-		const patterns = defaultPatterns(this.document)
-		if (text == null) { return patterns }
+	parsePatterns(text: string | null): Pattern[] {
+		if (text == null) { return [] }
 
-		const toRegExp = pattern => {
-			pattern = pattern.trim()
-			if (pattern.length === 0) { return null }
+		const patterns = []
+		for (let item of text.split(',')) {
+			item = item.trim()
+			if (item.length === 0) { continue }
 
-			try {
-				return new RegExp(pattern)
-			} catch (error) {
-				vscode.window.showErrorMessage(`Invalid pattern: ${pattern}`)
-				return null
-			}
-		}
-
-		for (const item of text.split(',')) {
-			if (/^d:/i.test(item)) {
-				patterns.directory = toRegExp(item.slice(2))
+			if (item.startsWith('d:') || item.startsWith('D:')) {
+				patterns.push(this.parsePattern('directory', item.slice(2).trim()))
+			} else if (item.startsWith('f:') || item.startsWith('F:')) {
+				patterns.push(this.parsePattern('file', item.slice(2).trim()))
 			} else {
-				patterns.file = toRegExp(item)
+				patterns.push(this.parsePattern('file', item))
+				patterns.push(this.parsePattern('directory', item))
 			}
 		}
 
 		return patterns
 	}
 
-	getFilenames(patterns: Patterns): string[] {
+	parsePattern(type: 'file' | 'directory', text: string): Pattern {
+		const pattern: {[key: string]: any} = {
+			type
+		}
+
+		if (text.startsWith('!')) {
+			pattern.policy = 'exclude'
+			text = text.slice(1).trim()
+		} else {
+			pattern.policy = 'include'
+		}
+
+		try {
+			const regExp = new RegExp(text)
+			if (regExp != null) { pattern.regExp = regExp }
+		} catch (error) {
+			throw new UserError(`Invalid pattern: ${text}`)
+		}
+
+		return pattern as Pattern
+	}
+
+	getFilenames(patterns: Pattern[]): string[] {
 		const dir = Path.dirname(this.document.uri.fsPath)
 		const names = FS.readdirSync(dir)
 
@@ -122,18 +188,38 @@ export default class IndexManifest {
 		return filteredNames
 	}
 
-	shouldInclude(name: string, path: string, patterns: Patterns): boolean {
-		if (name === 'index.js' || name === 'index.ts' || name === 'index.tsx') { return false }
+	shouldInclude(name: string, path: string, patterns: Pattern[]): boolean {
+		// Never include the file we're writing to.
+		if (path === this.document.uri.fsPath) { return false }
 
+		// Find the applicable patterns for this file / directory.
 		const stat = FS.statSync(path)
-		const pattern = stat.isDirectory() ? patterns.directory : patterns.file
-		if (pattern == null) { return false }
+		const applicablePatterns = patterns.filter(p => p.type === (stat.isDirectory() ? 'directory' : 'file'))
 
-		return pattern.test(name)
+		// If there are no patterns -> include.
+		if (applicablePatterns.length === 0) { return true }
+
+		// Figure out a base policy.
+		// Look at the first pattern: does it specify an include, than start out by excluding everything,
+		// and the other way around.
+		let include = applicablePatterns[0].policy === 'exclude'
+		for (const pattern of applicablePatterns) {
+			if (pattern.regExp == null ? true : pattern.regExp.test(name)) {
+				include = pattern.policy === 'include'
+			}
+		}
+
+		return include
 	}
 
 }
 
-function camelCase(text: string): string {
-	return text.replace(/\W+(\w)/g, (_, first) => first.toUpperCase())
+function camelCase(text: string, firstCapital: boolean = false): string {
+	if (firstCapital) {
+		return text.replace(/(?:^|\W+)(\w)/g, (_, first) => first.toUpperCase())
+	} else {
+		return text.replace(/\W+(\w)/g, (_, first) => first.toUpperCase())
+	}
 }
+
+class UserError extends Error {}

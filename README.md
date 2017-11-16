@@ -8,13 +8,13 @@ In any JavaScript or TypeScript file, simply invoke command "Build index" (or pr
 
 By default, all files are exported as:
 
-```
-export ${variable} from ${relpath}
+```js
+export ${variable} from ${relpath};
 ```
 
 E.g. having files `fileOne.js` and `fileTwo.js` in your directory yields:
 
-```
+```js
 export fileOne from './fileOne.js'
 export fileTwo from './fileTwo.js'
 ```
@@ -23,7 +23,7 @@ export fileTwo from './fileTwo.js'
 
 You can use markers (`@index` and `/index`) to tell where the index should be built, instead of replacing the entire file:
 
-```
+```js
 // This line will remain in the file.
 
 // @index
@@ -39,14 +39,14 @@ You can use markers (`@index` and `/index`) to tell where the index should be bu
 
 You can customize the template that is used to build the index lines by specifying these after the `@index` marker:
 
-```
+```js
 // @index: myCustomExportFunction(${relpath})
 
 ```
 
 Given files `fileOne.js` and `fileTwo.js`, this will yield:
 
-```
+```js
 // @index: myCustomExportFunction(${relpath})
 
 myCustomExportFunction('./fileOne.js')
@@ -59,23 +59,75 @@ The following placeholders can be used:
 - `${relpathwithext}`: the relative path, including extension, to the file to export (e.g. `'./fileOne.js'`)
 - `${name}`: the file name, without extension (e.g. `'fileOne'`)
 - `${variable}`: the file name, without extension, and without quotes (e.g. `fileOne`)
+- `${variable:upper}`: the file name, without extension, and without quotes, with the first letter capitalized (e.g. `FileOne`)
 
 ## Customize file patterns
 
-By default, js-index will look for all `*.js` files (or `*.ts` in the case of an `index.ts` file). All directories will also be included.
+By default, js-index will include *all files and directories*, except the file being edited.
 
-You can customize this by specifying (RegExp) patterns for files or directories (by prefixing `D:`)
+You can customize this by specifying (RegExp) patterns between parentheses after the `@index` marker. You can specify multiple patterns separated by comma's, and they can be prefixed with `D:` to target directories only,
+or `F:` to target files only.
 
 Examples:
 
-- `// @index(\.yml$)` will include all `*.yml` files. All directories are still included.
-- `// @index(D:dirone|dirtwo)` will include only directories `dirone` and `dirtwo`. All `*.js` / `*.ts` files are still included.
-- `// @index(D:,\.yml$)` includes no directories (empty pattern), and all `*.yml` files.
+- `// @index(\.yml$)` will only include all `*.yml` files (and directories).
+- `// @index(D: dirone|dirtwo)` will include only directories `dirone` and `dirtwo`. All files are still included.
+- `// @index(D: dirone, F: \.yml$)` only includes directory `dirone` and only `*.yml` files.
+
+### Exclusion
+
+You can make a pattern *exclude* rather than *include* an entry by prefixing it with `!`.
+
+Examples:
+
+- `// @index(!\.yml$)` will exclude all `*.yml` files (and directories).
+- `// @index(D: !dirone|dirtwo)` will exclude directories `dirone` and `dirtwo`. All other directories, and all files are still included.
+- `// @index(D: dirone, F: !\.yml$)` only includes directory `dirone` and excludes all `*.yml` files.
+
+When the first applicable pattern is an inclusion pattern, all other files and/or directories are excluded. Conversely, if the first applicable pattern is an exclusion pattern, all other files and/or are included.
+
+### Custom pattern and custom template
 
 When using both custom patterns and a custom template, use the following notation:
 
-```
+```js
 // @index(\.yml$): exportYAML(${relpath})
 ```
 
-**Note**: `index.js` and `index.ts` are *never* included.
+## Indentation
+
+You can make an index indented by indenting the start marker, e.g.
+
+```js
+module.exports = {
+  // @index: ${variable}: require(${relpath})
+  // /index
+}
+```
+
+Will indent the index entries so that a proper object is created.
+
+## Alignment
+
+You can insert markers to align the entries in the index. The default marker is `"|"` but this is customizable in the configuration of this extension.
+
+For example, the vertical bar before `require` ensures that the output is aligned:
+
+```js
+module.exports = {
+  // @index: ${variable}: |require(${relpath}),
+  // /index
+}
+```
+
+Turns into something like:
+
+```js
+module.exports = {
+  // @index: ${variable}: |require(${relpath}),
+  fileOne:          require('./fileOne.js'),
+  fileEleven:       require('./fileEleven.js'),
+  veryLongFileName: require('./veryLongFileName.js'),
+  // /index
+}
+```
