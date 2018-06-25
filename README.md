@@ -59,7 +59,35 @@ The following placeholders can be used:
 - `${relpathwithext}`: the relative path, including extension, to the file to export (e.g. `'./fileOne.js'`)
 - `${name}`: the file name, without extension (e.g. `'fileOne'`)
 - `${variable}`: the file name, without extension, and without quotes (e.g. `fileOne`)
-- `${variable:upper}`: the file name, without extension, and without quotes, with the first letter capitalized (e.g. `FileOne`)
+`FileOne`)
+
+### Search and replace
+
+You can add a regular expression suffix to search and replace.
+
+Given files `ParagraphBlock.js` and `CallToActionBlock.js`, this will yield:
+
+```js
+// @index: export {default as ${variable/Block$//}} from ${relpath}
+
+export {default as Paragraph} from './ParagraphBlock'
+export {default as CallToAction} from './CallToActionBlock'
+```
+
+### Modifiers
+
+You can add some modifiers to further customize your template. Modifiers are prefixed with a colon (:) and come after an optional regular expression.
+
+Given files `ParagraphBlock.js` and `CallToActionBlock.js`, this will yield:
+
+```js
+export default {
+  // @index: ${variable/Block$//:kebab:quoted}: require(${relpath}).default,
+  'call-to-action': require('./CallToActionBlock').default,
+  'paragraph': require('./ParagraphBlock').default
+  // /index
+}
+```
 
 ## Customize file patterns
 

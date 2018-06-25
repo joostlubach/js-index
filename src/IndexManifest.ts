@@ -2,6 +2,8 @@ import * as vscode from 'vscode'
 import * as Path from 'path'
 import * as FS from 'fs'
 import Aligner from './Aligner'
+import Interpolator from './Interpolator'
+import {camelCase} from 'lodash'
 
 interface IndexMarker {
 	indent:   string,
@@ -30,12 +32,14 @@ export default class IndexManifest {
 		const lines = names.map(name => {
 			const nameWithoutExtension = name.replace(/\..*?$/, '')
 
-			return `${indent}${template}`
-				.replace(/\$\{relpath\}/g, `'./${nameWithoutExtension}'`)
-				.replace(/\$\{relpathwithext\}/g, `'./${name}'`)
-				.replace(/\$\{variable\}/g, camelCase(nameWithoutExtension))
-				.replace(/\$\{variable:upper\}/g, camelCase(nameWithoutExtension, true))
-				.replace(/\$\{name\}/g, `'${camelCase(nameWithoutExtension)}'`) // TODO: Escape apostrophes, but who uses apostrophes in filenames anyway?
+			const interpolator = new Interpolator()
+
+			interpolator.add('relpath', `./${nameWithoutExtension}`, {quoted: true})
+			interpolator.add('relpathwithext', `./${name}`, {quoted: true})
+			interpolator.add('variable', camelCase(nameWithoutExtension))
+			interpolator.add('name', camelCase(nameWithoutExtension), {quoted: true})
+
+			return interpolator.interpolate(`${indent}${template}`)
 		})
 		
 		return aligner.align(lines).join('\n')
@@ -212,14 +216,6 @@ export default class IndexManifest {
 		return include
 	}
 
-}
-
-function camelCase(text: string, firstCapital: boolean = false): string {
-	if (firstCapital) {
-		return text.replace(/(?:^|\W+)(\w)/g, (_, first) => first.toUpperCase())
-	} else {
-		return text.replace(/\W+(\w)/g, (_, first) => first.toUpperCase())
-	}
 }
 
 class UserError extends Error {}
