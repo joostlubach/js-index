@@ -3,7 +3,7 @@ import * as Path from 'path'
 import * as FS from 'fs'
 import Aligner from './Aligner'
 import Interpolator from './Interpolator'
-import {camelCase} from 'lodash'
+import {camelCase, upperFirst} from 'lodash'
 
 interface IndexMarker {
 	indent:   string,
@@ -24,6 +24,7 @@ export default class IndexManifest {
 	constructor(private document: vscode.TextDocument) {}
 
 	buildIndex(patterns: Pattern[], template: string, indent: string) {
+		const {quotes} = vscode.workspace.getConfiguration('js-index')
 		const aligner = new Aligner()
 		
 		const dir = Path.dirname(this.document.uri.fsPath)
@@ -32,12 +33,15 @@ export default class IndexManifest {
 		const lines = names.map(name => {
 			const nameWithoutExtension = name.replace(/\..*?$/, '')
 
-			const interpolator = new Interpolator()
+			const interpolator = new Interpolator({quotes})
+			const variable = /[A-Z]/.test(nameWithoutExtension.charAt(0))
+				? upperFirst(camelCase(nameWithoutExtension))
+				: camelCase(nameWithoutExtension)
 
+			interpolator.add('name', name, {quoted: true})
+			interpolator.add('variable', variable)
 			interpolator.add('relpath', `./${nameWithoutExtension}`, {quoted: true})
 			interpolator.add('relpathwithext', `./${name}`, {quoted: true})
-			interpolator.add('variable', camelCase(nameWithoutExtension))
-			interpolator.add('name', camelCase(nameWithoutExtension), {quoted: true})
 
 			return interpolator.interpolate(`${indent}${template}`)
 		})

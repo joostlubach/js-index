@@ -58,8 +58,7 @@ The following placeholders can be used:
 - `${relpath}`: the relative path, excluding extension, to the file to export (e.g. `'./fileOne'`)
 - `${relpathwithext}`: the relative path, including extension, to the file to export (e.g. `'./fileOne.js'`)
 - `${name}`: the file name, without extension (e.g. `'fileOne'`)
-- `${variable}`: the file name, without extension, and without quotes (e.g. `fileOne`)
-`FileOne`)
+- `${variable}`: the corresponding variable name, derived from the file name but camel cased (e.g. `FileOne`)
 
 ### Search and replace
 
@@ -88,6 +87,20 @@ export default {
   // /index
 }
 ```
+
+The following modifiers are available:
+
+- `lower`:  `'FileOne' -> 'fileone'`
+- `upper`:  `'FileOne' -> 'FILEONE'`
+- `camel`:  `'FileOne' -> 'fileOne'`
+- `pascal`: `'fileOne' -> 'FileOne'`
+- `kebab`:  `'FileOne' -> 'file-one'`
+- `snake`:  `'FileOne' -> 'file_one'`
+- `dot`:    `'FileOne' -> 'file.one'`
+- `title`:  `'FileOne' -> 'File One'`
+- `quoted`: `File'One` -> `'File\'One'`
+
+You can customize quotes using the `js-index.quotes` setting.
 
 ## Customize file patterns
 

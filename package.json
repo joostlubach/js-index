@@ -45,6 +45,12 @@
           "type": "string",
           "default": "export {default as ${variable}} from ${relpath};",
           "description": "The default template to use when exporting files"
+        },
+        "js-index.quotes": {
+          "type": "string",
+          "default": "double",
+          "enum": ["single", "double"],
+          "description": "The quote style to use when quoting literals"
         }
       }
     }
