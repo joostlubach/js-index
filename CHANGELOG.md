@@ -31,3 +31,12 @@ are now handled correctly.
 - Indexes are aligned with their start marker
 - Alignment markers for generated indexes
 - Addition of `${variable:upper}` placeholder
+
+## [0.2.0]
+
+- Added modifiers
+- Added search & replace
+
+## [0.2.1]
+
+- Less intrusive filename -> variable name derivation

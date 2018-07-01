@@ -3,7 +3,7 @@ import * as Path from 'path'
 import * as FS from 'fs'
 import Aligner from './Aligner'
 import Interpolator from './Interpolator'
-import {camelCase, upperFirst} from 'lodash'
+import {lazyCamelCase} from './util'
 
 interface IndexMarker {
 	indent:   string,
@@ -34,9 +34,7 @@ export default class IndexManifest {
 			const nameWithoutExtension = name.replace(/\..*?$/, '')
 
 			const interpolator = new Interpolator({quotes})
-			const variable = /[A-Z]/.test(nameWithoutExtension.charAt(0))
-				? upperFirst(camelCase(nameWithoutExtension))
-				: camelCase(nameWithoutExtension)
+			const variable = lazyCamelCase(nameWithoutExtension)
 
 			interpolator.add('name', name, {quoted: true})
 			interpolator.add('variable', variable)
@@ -221,5 +219,6 @@ export default class IndexManifest {
 	}
 
 }
+
 
 class UserError extends Error {}
