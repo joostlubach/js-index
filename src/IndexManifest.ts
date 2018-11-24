@@ -31,7 +31,7 @@ export default class IndexManifest {
 		const names = this.getFilenames(patterns)
 
 		const lines = names.map(name => {
-			const nameWithoutExtension = name.replace(/\..*?$/, '')
+			const nameWithoutExtension = name.replace(/\.[^.]*?$/, '')
 
 			const interpolator = new Interpolator({quotes})
 			const variable = lazyCamelCase(nameWithoutExtension)
