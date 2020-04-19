@@ -24,8 +24,8 @@ export default class IndexManifest {
 	constructor(private document: vscode.TextDocument) {}
 
 	buildIndex(patterns: Pattern[], template: string, indent: string) {
-		const {quotes} = vscode.workspace.getConfiguration('js-index')
-		const aligner = new Aligner()
+		const {quotes, alignmentMarker} = vscode.workspace.getConfiguration('js-index')
+		const aligner = new Aligner(alignmentMarker)
 		
 		const dir = Path.dirname(this.document.uri.fsPath)
 		const names = this.getFilenames(patterns)

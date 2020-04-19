@@ -40,3 +40,7 @@ are now handled correctly.
 ## [0.2.1]
 
 - Less intrusive filename -> variable name derivation
+
+## [0.2.2]
+
+- Configurable alignment markers

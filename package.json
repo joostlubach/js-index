@@ -3,7 +3,7 @@
   "displayName": "JS Index",
   "description": "Builds a JS/TS index out of files in the directory.",
   "icon": "icon.png",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "publisher": "joostlubach",
   "author": {
     "name": "Joost Lubach",
@@ -51,6 +51,11 @@
           "default": "double",
           "enum": ["single", "double"],
           "description": "The quote style to use when quoting literals"
+        },
+        "js-index.alignmentMarker": {
+          "type": "string",
+          "default": "|",
+          "description": "The marker to use for alignment"
         }
       }
     }

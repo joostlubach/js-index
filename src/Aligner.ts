@@ -2,12 +2,9 @@ import * as vscode from 'vscode'
 
 export default class Aligner {
 
-  constructor() {
-    const config = vscode.workspace.getConfiguration('js-index')
-    this.marker = config.marker || '|'
-  }
-
-  readonly marker: string
+  constructor(
+    readonly marker: string = '|'
+  ) {}
 
   align(lines: string[]) {
     const alignmentPositions = []
@@ -51,7 +48,7 @@ export default class Aligner {
     let index
     while (index = line.indexOf(this.marker, index), index !== -1) {
       indices.push(index)
-      line = line.slice(0, index) + line.slice(index + 1)
+      line = line.slice(0, index) + line.slice(index + this.marker.length)
     }
     return [line, indices]
   }
