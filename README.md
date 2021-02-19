@@ -102,6 +102,16 @@ The following modifiers are available:
 
 You can customize quotes using the `js-index.quotes` setting.
 
+## Customize directory
+
+By default, js-index will look in the same directory as the current (index) file. To read from another directory, specify the directory immediately following the `@index` marker in square brackets. The path is relative to the current directory.
+
+Example.
+
+- `// @index[.]` will read from the current directory. This is the default.
+- `// @index[..]` will read from the parent directory.
+- `// @index[../../somewhere/else](*.yml)` reads all `*.yml` files in the directory found at `../../somewhere/else`.
+
 ## Customize file patterns
 
 By default, js-index will include *all files and directories*, except the file being edited.

@@ -3,7 +3,7 @@
   "displayName": "JS Index",
   "description": "Builds a JS/TS index out of files in the directory.",
   "icon": "icon.png",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "publisher": "joostlubach",
   "author": {
     "name": "Joost Lubach",
@@ -49,7 +49,10 @@
         "js-index.quotes": {
           "type": "string",
           "default": "double",
-          "enum": ["single", "double"],
+          "enum": [
+            "single",
+            "double"
+          ],
           "description": "The quote style to use when quoting literals"
         },
         "js-index.alignmentMarker": {
@@ -70,8 +73,9 @@
     "@types/lodash": "^4.14.110",
     "@types/mocha": "^2.2.32",
     "@types/node": "^6.0.40",
+    "@types/vscode": "^1.53.0",
     "mocha": "^2.3.3",
-    "typescript": "^2.0.3",
+    "typescript": "^4.1.5",
     "vscode": "^1.0.0"
   },
   "dependencies": {

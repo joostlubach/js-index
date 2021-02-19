@@ -44,3 +44,7 @@ are now handled correctly.
 ## [0.2.2]
 
 - Configurable alignment markers
+
+## [0.3.0]
+
+- Read index from files in other directory.

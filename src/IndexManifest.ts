@@ -6,7 +6,8 @@ import Interpolator from './Interpolator'
 import {lazyCamelCase} from './util'
 
 interface IndexMarker {
-	indent:   string,
+	root?:    string
+	indent:   string
 	start:    number
 	end:      number
 	patterns: Pattern[]
@@ -23,12 +24,11 @@ export default class IndexManifest {
 
 	constructor(private document: vscode.TextDocument) {}
 
-	buildIndex(patterns: Pattern[], template: string, indent: string) {
+	buildIndex(dir: string, patterns: Pattern[], template: string, indent: string) {
 		const {quotes, alignmentMarker} = vscode.workspace.getConfiguration('js-index')
 		const aligner = new Aligner(alignmentMarker)
 		
-		const dir = Path.dirname(this.document.uri.fsPath)
-		const names = this.getFilenames(patterns)
+		const names = this.getFilenames(dir, patterns)
 
 		const lines = names.map(name => {
 			const nameWithoutExtension = name.replace(/\..*?$/, '')
@@ -64,8 +64,12 @@ export default class IndexManifest {
 	}
 
 	replaceIndex(edit: vscode.WorkspaceEdit, marker: IndexMarker) {
-		let {indent, start, end, patterns, template} = marker
-		let index = this.buildIndex(patterns, template, indent)
+		let {root, indent, start, end, patterns, template} = marker
+
+		const currentDir = Path.dirname(this.document.uri.fsPath)
+		const dir        = Path.resolve(currentDir, root)
+
+		let index = this.buildIndex(dir, patterns, template, indent)
 
 		if (end < start) {
 			// Because the pattern finders greedily eat newlines and blanks, it may be that the end index
@@ -113,7 +117,7 @@ export default class IndexManifest {
 		const {defaultTemplate} = vscode.workspace.getConfiguration('js-index')
 		
 		const part = text.slice(startFrom)
-		const startMatch = part.match(/@index\s*(?:\((.*?)\))?\s*(?::\s*(.*?))?[\s\n]*(?:\n|$)/)
+		const startMatch = part.match(/@index\s*(?:\[(.*?)\])?\s*(?:\((.*?)\))?\s*(?::\s*(.*?))?[\s\n]*(?:\n|$)/)
 		const endMatch   = part.match(/[\s\n]*\n[\/\*\s]*\/index/)
 		if (startMatch == null) { return [null, text.length] }
 
@@ -126,11 +130,12 @@ export default class IndexManifest {
 		const startLine = text.split('\n')[startPos.line - 1]
 		const indent = startLine.match(/^\s*/)[0]
 
-		const patterns = this.parsePatterns(startMatch[1])
-		const template = startMatch[2] || defaultTemplate
+		const root     = startMatch[1] || '.'
+		const patterns = this.parsePatterns(startMatch[2])
+		const template = startMatch[3] || defaultTemplate
 
 		return [
-			{indent, start, end, patterns, template},
+			{root, indent, start, end, patterns, template},
 			endMatch == null ? end : end + endMatch[0].length
 		]
 	}
@@ -178,8 +183,7 @@ export default class IndexManifest {
 		return pattern as Pattern
 	}
 
-	getFilenames(patterns: Pattern[]): string[] {
-		const dir = Path.dirname(this.document.uri.fsPath)
+	getFilenames(dir: string, patterns: Pattern[]): string[] {
 		const names = FS.readdirSync(dir)
 
 		const filteredNames = []
