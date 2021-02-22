@@ -48,3 +48,7 @@ are now handled correctly.
 ## [0.3.0]
 
 - Read index from files in other directory.
+
+## [0.3.1]
+
+- Fix by @eMuonTau for filenames containing dots.
