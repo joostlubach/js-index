@@ -89,7 +89,7 @@ export default class IndexManifest {
 		const {defaultTemplate} = vscode.workspace.getConfiguration('js-index')
 		const markers: IndexMarker[] = []
 
-		let marker
+		let marker: IndexMarker
 		let startFrom = 0
 		while ([marker, startFrom] = this.readNextMarker(startFrom), marker != null) {
 			markers.push(marker)
@@ -98,6 +98,7 @@ export default class IndexManifest {
 		if (markers.length === 0) {
 			// Replace the entire file.
 			markers.push({
+				root:     '.',
 				indent:   '',
 				start:    0,
 				end:      this.document.getText().length,
