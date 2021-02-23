@@ -52,3 +52,7 @@ are now handled correctly.
 ## [0.3.1]
 
 - Fix by @eMuonTau for filenames containing dots.
+
+## [0.3.2]
+
+- Fix for broken index files without markers.
