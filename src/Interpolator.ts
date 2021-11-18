@@ -13,7 +13,7 @@ export interface InterpolationOptions {
   quoted?: boolean
 }
 
-const INTERPOLATION_REGEXP = /\$\{(.*?)\}/g
+const INTERPOLATION_REGEXP = /(?:\\)?\$\{(.*?)\}/g
 const PARSE_REGEXP = /^(.*?)(?:\/(.+)\/(.*)\/(.*?))?(?::(.*))?$/
 
 const MODIFIERS = {
@@ -41,6 +41,10 @@ export default class Interpolator {
     return string.replace(INTERPOLATION_REGEXP, (all, content) => {
       const match = content.match(PARSE_REGEXP)
       if (match == null) { return all }
+
+      if (all.charAt(0) === '\\') {
+        return all.slice(1)
+      }
 
       const [, name, search, replace, reModifiers, rest = ''] = match
       const interpolation = this.interpolations[name]

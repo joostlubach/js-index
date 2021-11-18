@@ -56,3 +56,7 @@ are now handled correctly.
 ## [0.3.2]
 
 - Fix for broken index files without markers.
+
+## [0.3.3]
+
+- Support for escaping interpolation literals with a slash (e.g. `\${name}`).

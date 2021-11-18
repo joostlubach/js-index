@@ -3,7 +3,7 @@
   "displayName": "JS Index",
   "description": "Builds a JS/TS index out of files in the directory.",
   "icon": "icon.png",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "publisher": "joostlubach",
   "author": {
     "name": "Joost Lubach",
