@@ -60,3 +60,7 @@ are now handled correctly.
 ## [0.3.3]
 
 - Support for escaping interpolation literals with a slash (e.g. `\${name}`).
+
+## [0.3.4] - [0.3.5]
+
+- Tried to bundle the extension. Didn't work, so reverted.
