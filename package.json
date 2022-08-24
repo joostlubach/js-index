@@ -78,6 +78,6 @@
     "vscode": "^1.1.37"
   },
   "dependencies": {
-    "lodash": "^4.17.19"
+    "lodash": "^4.17.21"
   }
 }
