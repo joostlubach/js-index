@@ -24,11 +24,12 @@ export default class IndexManifest {
 
 	constructor(private document: vscode.TextDocument) {}
 
-	buildIndex(dir: string, patterns: Pattern[], template: string, indent: string) {
+	buildIndex(dir: string, curdir: string, patterns: Pattern[], template: string, indent: string) {
 		const {quotes, alignmentMarker} = vscode.workspace.getConfiguration('js-index')
 		const aligner = new Aligner(alignmentMarker)
 		
-		const names = this.getFilenames(dir, patterns)
+		const names  = this.getFilenames(dir, patterns)
+		const prefix = Path.relative(curdir, dir)
 
 		const lines = names.map(name => {
 			const nameWithoutExtension = name.replace(/\.[^.]*?$/, '')
@@ -38,8 +39,8 @@ export default class IndexManifest {
 
 			interpolator.add('name', name, {quoted: true})
 			interpolator.add('variable', variable)
-			interpolator.add('relpath', `./${nameWithoutExtension}`, {quoted: true})
-			interpolator.add('relpathwithext', `./${name}`, {quoted: true})
+			interpolator.add('relpath', `${prefix}/${nameWithoutExtension}`, {quoted: true})
+			interpolator.add('relpathwithext', `${prefix}/${name}`, {quoted: true})
 
 			return interpolator.interpolate(`${indent}${template}`)
 		})
@@ -69,7 +70,7 @@ export default class IndexManifest {
 		const currentDir = Path.dirname(this.document.uri.fsPath)
 		const dir        = Path.resolve(currentDir, root)
 
-		let index = this.buildIndex(dir, patterns, template, indent)
+		let index = this.buildIndex(dir, currentDir, patterns, template, indent)
 
 		if (end < start) {
 			// Because the pattern finders greedily eat newlines and blanks, it may be that the end index

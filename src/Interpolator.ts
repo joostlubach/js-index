@@ -39,14 +39,24 @@ export default class Interpolator {
 
   interpolate(string: string) {
     return string.replace(INTERPOLATION_REGEXP, (all, content) => {
-      const match = content.match(PARSE_REGEXP)
+      const match = content
+        .replace(/\\\//g, '仮仮仮') // Replace any slash by some placeholder
+        .match(PARSE_REGEXP)
       if (match == null) { return all }
 
       if (all.charAt(0) === '\\') {
         return all.slice(1)
       }
 
-      const [, name, search, replace, reModifiers, rest = ''] = match
+      // Change all the placeholders back.
+      let [, name, search, replace, reModifiers, rest = ''] = match
+      name        = name.replace(/仮仮仮/g, '/')
+      search      = search && search.replace(/仮仮仮/g, '/')
+      replace     = replace && replace.replace(/仮仮仮/g, '/')
+      reModifiers = reModifiers && reModifiers.replace(/仮仮仮/g, '/')
+      rest        = rest.replace(/仮仮仮/g, '/')
+
+
       const interpolation = this.interpolations[name]
       if (interpolation == null) { return all }
 

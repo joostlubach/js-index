@@ -64,3 +64,10 @@ are now handled correctly.
 ## [0.3.4] - [0.3.5]
 
 - Tried to bundle the extension. Didn't work, so reverted.
+
+## [0.4]
+
+- Allowing slashes in replacements.
+- `${relpath}` now refers to the actual relative path from the index file, not hardoded `./{filename}`
+
+> NOTE: the second change is formally not backwards-compatible. If you use the remote directory listing, e.g. `// @index[../some/other/dir]`, make sure your paths still work after upgrading. I've chosen to do this because it is more logical, and I doubt anyone is using this remote directory feature a lot.
