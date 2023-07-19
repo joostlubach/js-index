@@ -29,7 +29,7 @@ export default class IndexManifest {
 		const aligner = new Aligner(alignmentMarker)
 		
 		const names  = this.getFilenames(dir, patterns)
-		const prefix = Path.relative(curdir, dir)
+		const prefix = curdir === dir ? '.' : Path.relative(curdir, dir)
 
 		const lines = names.map(name => {
 			const nameWithoutExtension = name.replace(/\.[^.]*?$/, '')

@@ -71,3 +71,7 @@ are now handled correctly.
 - `${relpath}` now refers to the actual relative path from the index file, not hardoded `./{filename}`
 
 > NOTE: the second change is formally not backwards-compatible. If you use the remote directory listing, e.g. `// @index[../some/other/dir]`, make sure your paths still work after upgrading. I've chosen to do this because it is more logical, and I doubt anyone is using this remote directory feature a lot.
+
+## [0.4.2]
+
+- Fix for relative paths in non-remote listings.
