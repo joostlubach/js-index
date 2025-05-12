@@ -87,7 +87,7 @@ export default class IndexManifest {
 	}
 
 	readMarkers(): IndexMarker[] {
-		const {defaultTemplate} = vscode.workspace.getConfiguration('js-index')
+		const {defaultTemplate, defaultPatterns} = vscode.workspace.getConfiguration('js-index')
 		const markers: IndexMarker[] = []
 
 		let marker: IndexMarker
@@ -103,7 +103,7 @@ export default class IndexManifest {
 				indent:   '',
 				start:    0,
 				end:      this.document.getText().length,
-				patterns: [],
+				patterns: this.parsePatterns(defaultPatterns),
 				template: defaultTemplate
 			})
 		}
@@ -116,7 +116,7 @@ export default class IndexManifest {
 
 	readNextMarker(startFrom: number): [IndexMarker | null, number] {
 		const text = this.document.getText()
-		const {defaultTemplate} = vscode.workspace.getConfiguration('js-index')
+		const {defaultTemplate, defaultPatterns} = vscode.workspace.getConfiguration('js-index')
 		
 		const part = text.slice(startFrom)
 		const startMatch = part.match(/@index\s*(?:\[(.*?)\])?\s*(?:\((.*?)\))?\s*(?::\s*(.*?))?[\s\n]*(?:\n|$)/)
@@ -135,6 +135,10 @@ export default class IndexManifest {
 		const root     = startMatch[1] || '.'
 		const patterns = this.parsePatterns(startMatch[2])
 		const template = startMatch[3] || defaultTemplate
+
+		if (patterns.length === 0 && defaultPatterns != null) {
+			patterns.push(...this.parsePatterns(defaultPatterns))
+		}
 
 		return [
 			{root, indent, start, end, patterns, template},

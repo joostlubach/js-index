@@ -75,3 +75,7 @@ are now handled correctly.
 ## [0.4.2]
 
 - Fix for relative paths in non-remote listings.
+
+## [0.4.3]
+
+- Added configuration setting `js-index.defaultPatterns` for specifying a default set of patterns to use when no patterns are specified in the index marker.

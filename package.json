@@ -3,7 +3,7 @@
   "displayName": "JS Index",
   "description": "Builds a JS/TS index out of files in the directory.",
   "icon": "icon.png",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "publisher": "joostlubach",
   "author": {
     "name": "Joost Lubach",
@@ -19,9 +19,6 @@
   },
   "categories": [
     "Other"
-  ],
-  "activationEvents": [
-    "onCommand:js-index.buildIndex"
   ],
   "main": "./out/src/extension",
   "contributes": {
@@ -46,6 +43,10 @@
           "type": "string",
           "default": "export {default as ${variable}} from ${relpath};",
           "description": "The default template to use when exporting files"
+        },
+        "js-index.defaultPatterns": {
+          "type": "string",
+          "description": "A default pattern to use if no pattern is specified in the template. Specify multiple patterns by separating them with a comma."
         },
         "js-index.quotes": {
           "type": "string",
